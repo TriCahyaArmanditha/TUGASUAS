@@ -1,4 +1,4 @@
-# 📌 *Project Website Pribadi*
+# 📌 *PROJECT UAS WEB BASED DEVELOPMENT*
 
 ## 📋 *Informasi Pengembang*  
 - *Nama*: Tri Cahya Armanditha  
