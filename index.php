@@ -1,6 +1,52 @@
 <?php
 session_start();
+
+// Fungsi untuk sanitasi input
+function sanitize_input($data) {
+    $data = trim($data);  // Menghapus spasi yang tidak perlu
+    $data = stripslashes($data);  // Menghapus backslashes
+    $data = htmlspecialchars($data);  // Mengonversi karakter khusus ke HTML entities untuk mencegah XSS
+    return $data;
+}
+
+// Membuat koneksi ke database MySQL
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "user_login";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Cek koneksi
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = sanitize_input($_POST['name']);
+    $email = sanitize_input($_POST['email']);
+    $subject = sanitize_input($_POST['subject']);
+    $message = sanitize_input($_POST['message']);
+
+    $stmt = $conn->prepare("INSERT INTO messages (name, email, subject, message) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $name, $email, $subject, $message);
+
+    if ($stmt->execute()) {
+        $_SESSION['notification'] = "Terimakasih sudah mengirim pesan!";
+    } else {
+        $_SESSION['notification'] = "Terjadi kesalahan: " . $stmt->error;
+    }
+
+    $stmt->close();
+    // Redirect untuk mencegah pengiriman ulang data saat refresh halaman
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+$conn->close();
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -184,14 +230,22 @@ session_start();
         </div>
 
         <div class="contact-form">
-        <form action="submit_message.php" method="POST">
+    <!-- Tampilkan notifikasi jika ada -->
+    <?php if (!empty($_SESSION['notification'])): ?>
+        <div class="notification" id="notification">
+            <p><?php echo $_SESSION['notification']; ?></p>
+        </div>
+        <?php unset($_SESSION['notification']); // Hapus notifikasi setelah ditampilkan ?>
+    <?php endif; ?>
+
+    <form id="contactForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
         <input type="text" name="name" placeholder="Enter Your Name" required>
         <input type="email" name="email" placeholder="Enter Your Email" required>
         <input type="text" name="subject" placeholder="Enter Your Subject">
-        <textarea name="message" id="" cols="48" rows="10" placeholder="Enter Your Message" required></textarea>
+        <textarea name="message" cols="48" rows="10" placeholder="Enter Your Message" required></textarea>
         <input type="submit" value="Submit" class="send">
-    </form>
-    </div>
+  </form>
+</div>
     </section>
     <div class="last-text">
         <p>&copy; 2025 by Tri Cahya Armanditha. Crafted with passion and creativity.</p>
@@ -200,13 +254,47 @@ session_start();
 
 
 
+    <script>
+    // Animasi teks yang sudah ada
+    var typed = new Typed(".text", {
+        strings: ["Website Design & Development", "Creative Branding Solutions", "Tailored Digital Strategies"],
+        typeSpeed: 100,
+        backSpeed: 100,
+        backDelay: 1000,
+        loop: true
+    });
 
+    // Reset form jika pengiriman berhasil
+    <?php if (!empty($notification) && $notification === "Data berhasil disimpan!"): ?>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("contactForm").reset();
+        });
 
+        document.addEventListener("DOMContentLoaded", function () {
+    const notification = document.querySelector(".notification");
+    if (notification && notification.textContent.includes("Data berhasil disimpan")) {
+        document.getElementById("contactForm").reset();
+}
+});
 
+document.addEventListener("DOMContentLoaded", function () {
+    const notification = document.getElementById("notification");
 
+    if (notification) {
+        // Hilangkan notifikasi setelah 5 detik
+        setTimeout(() => {
+            notification.classList.add("hidden");
+        }, 5000); // 5000ms = 5 detik
 
+        // Hapus elemen dari DOM setelah animasi selesai
+        notification.addEventListener("transitionend", () => {
+            notification.remove();
+        });
+   }
+});
 
-    <script src="JS\personalwebsite.js"></script>
+    <?php endif;?>
+</script>
 </body>
 
 </html>

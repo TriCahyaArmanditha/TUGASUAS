@@ -34,7 +34,7 @@ session_start();
         <div class="maps">
             <iframe
                 src="https://www.bing.com/search?pglt=931&q=jl+kh+mansyur+no+74+kacongan+sumenep+jawa+timur&cvid=2094164fdb9542279831690fae2162a2&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOdIBCTE2NzE1ajBqMagCALACAA&FORM=ANNTA1&ucpdpc=UCPD&PC=U531"
-                width="800" height="400" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false"
+                width="800" height="600" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false"
                 tabindex="0"></iframe>
             <br><br>
         </div>

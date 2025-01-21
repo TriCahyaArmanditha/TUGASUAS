@@ -493,7 +493,7 @@ body {
     outline: none;
     width: 90%;
     padding: 18px;
-    background: #555557;
+    background: #fbfbff;
     color: black;
     font-size: 1rem;
     font-weight: 600;
@@ -502,6 +502,7 @@ body {
 }
 
 .contact-form textarea {
+    background-color: aliceblue;
     resize: none;
     height: 220px;
 }
@@ -552,6 +553,25 @@ body {
     border-radius: 0.5rem;
 }
 
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #4CAF50; /* Warna hijau untuk notifikasi sukses */
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.notification.hidden {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none; /* Agar tidak bisa diklik setelah hilang */
+}
 
 @keyframes html-animation {
     from {
@@ -786,6 +806,7 @@ body {
     }
 
     .contact-form {
+        color: aliceblue;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -803,10 +824,11 @@ body {
     .contact-form textarea {
         width: 100%;
         box-sizing: border-box;
+        background-color: aliceblue;
         padding: 10px;
         margin-bottom: 10px;
         border-radius: 5px;
-        border: 1px solid #ccc;
+        border: 1px solid #e8e6e6;
     }
 
     .contact-form textarea {

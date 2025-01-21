@@ -5,17 +5,23 @@ if ($_SESSION['role'] != 'user') {
     exit();
 }
 
+// Koneksi ke database
 $conn = new mysqli('localhost', 'root', '', 'user_login');
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
+// Ambil data produk
 $sql_products = "SELECT * FROM products";
 $result_products = $conn->query($sql_products);
 
-$sql_reviews = "SELECT reviews.*, products.name AS product_name FROM reviews 
-                INNER JOIN products ON reviews.product_id = products.id
-                ORDER BY reviews.created_at DESC";
+// Ambil data review, termasuk balasan admin
+$sql_reviews = "
+    SELECT reviews.*, products.name AS product_name, responses.response AS admin_response 
+    FROM reviews
+    INNER JOIN products ON reviews.product_id = products.id
+    LEFT JOIN responses ON reviews.id = responses.review_id
+    ORDER BY reviews.created_at DESC";
 $result_reviews = $conn->query($sql_reviews);
 
 if (!$result_reviews) {
@@ -24,6 +30,7 @@ if (!$result_reviews) {
 
 $success_message = '';
 
+// Proses form untuk menambah ulasan
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $product_id = $_POST['product_id'];
     $rating = $_POST['rating'];
@@ -33,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $sql_add_review = "INSERT INTO reviews (product_id, rating, review, username) 
                         VALUES ('$product_id', '$rating', '$review', '$username')";
     if ($conn->query($sql_add_review)) {
-        $success_message = "Terimakasih sudah mengirim ulasan🩷";
+        $success_message = "Terima kasih sudah mengirim ulasan! ❤";
     } else {
         echo "Gagal menambahkan ulasan: " . $conn->error;
     }
@@ -41,17 +48,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Produk</title>
-    <link rel="stylesheet" href="CSS/dashboarduser.css">
+    <title>User Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
+            background-color:rgba(240, 248, 255, 0.62);
+            background-image: url(backgrounduserdashboard.jpg);
+            background-size: cover;
             margin: 0;
             padding: 0;
             display: flex;
@@ -62,14 +71,15 @@ $conn->close();
         }
 
         header {
-            background-color: rgb(13, 64, 116);
+            background-color: rgba(2, 29, 55, 0.8);
             color: white;
-            padding: 10px;
             width: 100%;
             text-align: center;
+            padding: 10px;
         }
 
         table {
+            background: rgba(255, 255, 255, 0.47);
             width: 80%;
             border-collapse: collapse;
             margin: 20px 0;
@@ -82,13 +92,13 @@ $conn->close();
         }
 
         th {
-            background-color: #1e90ff;
+            background-color:rgba(2, 29, 55, 0.8);
             color: white;
         }
 
         form {
             width: 60%;
-            background: white;
+            background: rgba(255, 255, 255, 0.47);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
@@ -96,7 +106,7 @@ $conn->close();
         }
 
         input, select, textarea {
-            width: 100%;
+            width: 98%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
@@ -104,7 +114,7 @@ $conn->close();
         }
 
         button {
-            background-color: #1e90ff;
+            background-color:rgba(2, 29, 55, 0.8);
             color: white;
             padding: 10px 15px;
             border: none;
@@ -117,11 +127,11 @@ $conn->close();
         }
 
         h2 {
-            color: #1e90ff;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .notification {
-            background-color: #1e90ff;
+            background-color:rgba(2, 29, 55, 0.8);
             color: white;
             padding: 10px;
             margin-top: 20px;
@@ -129,17 +139,17 @@ $conn->close();
             text-align: center;
             display: none;
         }
-
     </style>
 </head>
 <body>
     <header>
-        <h1>Dashboard Produk</h1>
+        <h1>Welcome to Dashboard User</h1>
         <nav>
             <a href="logout.php" style="color: white; font-size: 18px;">Logout</a>
         </nav>
     </header>
 
+    <!-- Form untuk mengirim ulasan -->
     <form method="POST" action="">
         <h2>Berikan Ulasan terhadap Produk Kami</h2>
 
@@ -168,11 +178,12 @@ $conn->close();
         <button type="submit">Kirim Ulasan</button>
     </form>
 
-    <!-- Notification Message (Below the review form) -->
+    <!-- Notifikasi -->
     <?php if ($success_message): ?>
         <div class="notification" id="notification"><?php echo $success_message; ?></div>
     <?php endif; ?>
 
+    <!-- Tabel Ulasan -->
     <h2>Ulasan Pelanggan</h2>
     <?php if ($result_reviews->num_rows > 0): ?>
         <table>
@@ -182,6 +193,7 @@ $conn->close();
                     <th>Nama Pengguna</th>
                     <th>Rating</th>
                     <th>Ulasan</th>
+                    <th>Admin Response</th>
                     <th>Tanggal</th>
                 </tr>
             </thead>
@@ -191,7 +203,8 @@ $conn->close();
                         <td><?php echo $row['product_name']; ?></td>
                         <td><?php echo $row['username']; ?></td>
                         <td><?php echo str_repeat('⭐', $row['rating']); ?></td>
-                        <td><?php echo $row['review']; ?></td>
+                        <td><?php echo htmlspecialchars($row['review']); ?></td>
+                        <td><?php echo $row['admin_response'] ? htmlspecialchars($row['admin_response']) : "No response yet"; ?></td>
                         <td><?php echo $row['created_at']; ?></td>
                     </tr>
                 <?php endwhile; ?>
